@@ -292,7 +292,7 @@ export default function DashboardPage() {
                       >
                         <option value="" className="bg-gray-800">All Categories</option>
                         {categories.map(cat => (
-                          <option key={cat} value={cat} className="bg-gray-800">🏷️ {cat}</option>
+                          <option key={cat} value={cat} className="bg-gray-800">{cat}</option>
                         ))}
                       </select>
                     )}
