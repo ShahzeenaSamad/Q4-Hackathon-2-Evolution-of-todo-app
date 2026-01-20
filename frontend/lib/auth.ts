@@ -15,19 +15,17 @@ import { User, AuthTokens, AuthResponse, LoginRequest, SignupRequest } from './t
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 // Token storage keys
-const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
 const USER_KEY = 'user';
 
 // Token expiration times (must match backend)
 const ACCESS_TOKEN_EXPIRE_MS = 15 * 60 * 1000; // 15 minutes
-const REFRESH_TOKEN_EXPIRE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const REFRESH_THRESHOLD_MS = 2 * 60 * 1000; // Refresh 2 minutes before expiration
 
 /**
  * In-memory token store (access tokens only for security)
  */
-let inMemoryTokens: {
+const inMemoryTokens: {
   accessToken: string | null;
   refreshToken: string | null;
   user: User | null;
@@ -156,8 +154,7 @@ function scheduleTokenRefresh(): void {
   // Schedule refresh 2 minutes before expiration
   refreshTimer = setTimeout(
     () => {
-      refreshAccessToken().catch((e) => {
-        console.error('Failed to refresh access token:', e);
+      refreshAccessToken().catch(() => {
         // If refresh fails, logout user
         clearAuthTokens();
         window.location.href = '/login';
@@ -249,7 +246,7 @@ export async function apiRequest(
       }
 
       response = await fetch(`${API_URL}${endpoint}`, options);
-    } catch (e) {
+    } catch {
       // Refresh failed, clear tokens and redirect to login
       clearAuthTokens();
       if (typeof window !== 'undefined') {
@@ -320,8 +317,8 @@ export async function logout(): Promise<void> {
         'Content-Type': 'application/json',
       },
     });
-  } catch (e) {
-    console.error('Logout endpoint call failed:', e);
+  } catch (error) {
+    console.error('Logout endpoint call failed:', error);
   } finally {
     // Always clear local tokens
     clearAuthTokens();
