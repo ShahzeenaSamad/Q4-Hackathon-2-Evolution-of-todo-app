@@ -1,8 +1,8 @@
 ---
 title: TaskFlow API
 emoji: ⚡
-colorFrom: #5C8374
-colorTo: #1B4242
+colorFrom: green
+colorTo: blue
 sdk: docker
 pinned: false
 license: mit
