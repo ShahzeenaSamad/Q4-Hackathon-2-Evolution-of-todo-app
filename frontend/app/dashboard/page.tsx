@@ -57,7 +57,9 @@ export default function DashboardPage() {
   }, []);
 
   // Get unique categories
-  const categories = Array.from(new Set(tasks.map(t => t.category).filter(Boolean)));
+  const categories: string[] = Array.from(
+    new Set(tasks.map(t => t.category).filter((cat): cat is string => cat != null))
+  );
 
   // Filter and search tasks
   const filteredTasks = tasks.filter(task => {

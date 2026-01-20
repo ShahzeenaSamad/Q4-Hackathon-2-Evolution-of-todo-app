@@ -82,9 +82,7 @@ export const taskCreateSchema = z.object({
     .optional()
     .nullable(),
   priority: z
-    .enum(['low', 'medium', 'high'], {
-      errorMap: () => ({ message: 'Priority must be low, medium, or high' })
-    })
+    .enum(['low', 'medium', 'high'])
     .default('medium'),
   due_date: z
     .string()
