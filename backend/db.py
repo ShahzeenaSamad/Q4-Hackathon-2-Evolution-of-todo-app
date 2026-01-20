@@ -55,7 +55,7 @@ SessionLocal = sessionmaker(
 )
 
 AsyncSessionLocal = sessionmaker(
-    engine.class_config(async_engine),
+    bind=async_engine,
     class_=AsyncSession,
     expire_on_commit=False,
 )
