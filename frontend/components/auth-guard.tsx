@@ -16,7 +16,7 @@ interface AuthGuardProps {
 }
 
 export default function AuthGuard({ children }: AuthGuardProps) {
-  const { session, isAuthenticated, loading } = useSession();
+  const { isAuthenticated, loading } = useSession();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 

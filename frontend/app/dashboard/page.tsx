@@ -84,7 +84,6 @@ export default function DashboardPage() {
   const totalTasks = tasks.length;
   const completedTasks = tasks.filter(t => t.completed).length;
   const pendingTasks = totalTasks - completedTasks;
-  const highPriorityTasks = tasks.filter(t => t.priority === 'high' && !t.completed).length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   if (!mounted) return null;
@@ -275,7 +274,7 @@ export default function DashboardPage() {
                     {/* Priority Filter */}
                     <select
                       value={filterPriority}
-                      onChange={(e) => setFilterPriority(e.target.value as any)}
+                      onChange={(e) => setFilterPriority(e.target.value as 'all' | 'high' | 'medium' | 'low')}
                       className="px-4 py-3 bg-white/5 backdrop-blur-sm border-2 border-white/20 rounded-2xl text-white text-sm focus:border-white/30 focus:outline-none transition-all"
                     >
                       <option value="all" className="bg-gray-800">All Priorities</option>
