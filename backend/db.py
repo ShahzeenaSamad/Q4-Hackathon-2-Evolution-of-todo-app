@@ -1,6 +1,6 @@
 """
-Database connection and session management for PostgreSQL (Neon)
-Uses SQLModel with async support and connection pooling
+Database connection and session management for PostgreSQL
+Uses SQLModel with connection pooling
 """
 from sqlmodel import SQLModel, create_engine, Session
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -8,46 +8,42 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
 from typing import Generator, AsyncGenerator
 import os
-from dotenv import load_dotenv
 import logging
-
-# Load environment variables
-load_dotenv()
 
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Database URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL")
+# Database URL from environment (for Hugging Face Spaces)
+DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if not DATABASE_URL:
     raise ValueError(
         "DATABASE_URL environment variable not set. "
-        "Please set it in your .env file or environment."
+        "Please set it in Hugging Face Space secrets."
     )
 
-# Convert to async URL if needed for PostgreSQL + asyncpg
-# For synchronous operations (current implementation), use psycopg2-binary
-# For async operations (future enhancement), use:postgresql+asyncpg://
+logger.info(f"Database URL configured: {DATABASE_URL[:20]}...")
+
+# Convert to async URL for asyncpg
 ASYNC_DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
 
-# Create synchronous engine (for current implementation)
+# Create synchronous engine
 engine = create_engine(
     DATABASE_URL,
-    echo=bool(os.getenv("PYTHON_ENV") == "development"),  # Log SQL in development
+    echo=False,  # Disable SQL logging in production
     pool_pre_ping=True,  # Verify connections before using
-    pool_size=10,  # Connection pool size
-    max_overflow=20,  # Additional connections when pool is full
+    pool_size=5,  # Smaller pool for Hugging Face
+    max_overflow=10,  # Additional connections when pool is full
     pool_recycle=3600,  # Recycle connections after 1 hour
 )
 
-# Create async engine (for future async operations)
+# Create async engine
 async_engine = create_async_engine(
     ASYNC_DATABASE_URL,
-    echo=bool(os.getenv("PYTHON_ENV") == "development"),
+    echo=False,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    pool_size=5,
+    max_overflow=10,
     pool_recycle=3600,
 )
 
@@ -55,19 +51,18 @@ async_engine = create_async_engine(
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine,
+    bind=engine
 )
 
 AsyncSessionLocal = sessionmaker(
-    async_engine,
+    engine.class_config(async_engine),
     class_=AsyncSession,
     expire_on_commit=False,
 )
 
-
 def get_db() -> Generator[Session, None, None]:
     """
-    Dependency function to get database session
+    Get database session (synchronous)
     Usage in FastAPI endpoints:
         db: Session = Depends(get_db)
     """
@@ -77,11 +72,10 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-
 async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    Dependency function to get async database session
-    Usage in async FastAPI endpoints:
+    Get async database session
+    Usage in FastAPI endpoints:
         db: AsyncSession = Depends(get_async_db)
     """
     async with AsyncSessionLocal() as session:
@@ -90,92 +84,40 @@ async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
         finally:
             await session.close()
 
-
-def init_db():
+def init_db() -> None:
     """
     Initialize database tables
-    Creates all tables that don't exist yet
+    Call this on application startup
     """
-    try:
-        logger.info("Initializing database...")
-        SQLModel.metadata.create_all(engine)
-        logger.info("Database initialized successfully")
-    except Exception as e:
-        logger.error(f"Error initializing database: {e}")
-        raise
+    from models.user import User
+    from models.task import Task
+    
+    logger.info("Creating database tables...")
+    SQLModel.metadata.create_all(engine)
+    logger.info("Database tables created successfully")
 
-
-async def init_async_db():
+async def init_async_db() -> None:
     """
-    Initialize database tables asynchronously
+    Initialize database tables (async version)
     """
-    try:
-        logger.info("Initializing async database...")
-        async with async_engine.begin() as conn:
-            await conn.run_sync(SQLModel.metadata.create_all)
-        logger.info("Async database initialized successfully")
-    except Exception as e:
-        logger.error(f"Error initializing async database: {e}")
-        raise
-
+    from models.user import User
+    from models.task import Task
+    
+    logger.info("Creating database tables (async)...")
+    async with async_engine.begin() as conn:
+        await conn.run_sync(SQLModel.metadata.create_all)
+    logger.info("Database tables created successfully (async)")
 
 def check_db_connection() -> bool:
     """
     Check if database connection is working
-    Returns:
-        bool: True if connection successful, False otherwise
+    Returns True if connection successful, False otherwise
     """
     try:
-        db = SessionLocal()
-        # Simple query to test connection
-        db.execute(text("SELECT 1"))
-        db.close()
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        logger.info("Database connection check: SUCCESS")
         return True
     except Exception as e:
-        logger.error(f"Database connection check failed: {e}")
+        logger.error(f"Database connection check: FAILED - {e}")
         return False
-
-
-async def check_async_db_connection() -> bool:
-    """
-    Check if async database connection is working
-    Returns:
-        bool: True if connection successful, False otherwise
-    """
-    try:
-        async with AsyncSessionLocal() as session:
-            await session.execute(text("SELECT 1"))
-        return True
-    except Exception as e:
-        logger.error(f"Async database connection check failed: {e}")
-        return False
-
-
-def close_db_connections():
-    """
-    Close all database connections
-    Called on application shutdown
-    """
-    try:
-        logger.info("Closing database connections...")
-        engine.dispose()
-        async_engine.dispose()
-        logger.info("Database connections closed")
-    except Exception as e:
-        logger.error(f"Error closing database connections: {e}")
-
-
-# Export commonly used items
-__all__ = [
-    "engine",
-    "async_engine",
-    "SessionLocal",
-    "AsyncSessionLocal",
-    "get_db",
-    "get_async_db",
-    "init_db",
-    "init_async_db",
-    "check_db_connection",
-    "check_async_db_connection",
-    "close_db_connections",
-]
