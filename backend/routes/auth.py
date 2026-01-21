@@ -5,6 +5,9 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.security import HTTPBearer
 from sqlmodel import Session
 from typing import Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 from models.user import User
 from services.user_service import (
@@ -41,6 +44,7 @@ def signup(http_request: Request, request: SignupRequest, db: Session = Depends(
     # Check rate limit
     client_ip = http_request.client.host
     if _rate_limiter.is_rate_limited(client_ip):
+        logger.warning(f"Rate limit exceeded for IP: {client_ip}")
         return AuthResponse(
             success=False,
             error={"code": "RATE_LIMITED", "message": "Too many attempts. Please try again later."}
@@ -48,6 +52,7 @@ def signup(http_request: Request, request: SignupRequest, db: Session = Depends(
 
     # Create user (service handles validation)
     try:
+        logger.info(f"Signup request for email: {request.email}")
         user = create_user(
             email=request.email,
             password=request.password,
@@ -55,16 +60,31 @@ def signup(http_request: Request, request: SignupRequest, db: Session = Depends(
             session=db
         )
     except ValueError as e:
+        logger.warning(f"Validation error during signup for {request.email}: {str(e)}")
         return AuthResponse(
             success=False,
             error={"code": "VALIDATION_ERROR", "message": str(e)}
         )
+    except Exception as e:
+        logger.error(f"Unexpected error during signup for {request.email}: {str(e)}", exc_info=True)
+        return AuthResponse(
+            success=False,
+            error={"code": "INTERNAL_ERROR", "message": "An error occurred. Please try again."}
+        )
 
     # Generate tokens
-    access_token = create_access_token(user.id, user.email)
-    refresh_token = create_refresh_token(user.id)
+    try:
+        access_token = create_access_token(user.id, user.email)
+        refresh_token = create_refresh_token(user.id)
+    except Exception as e:
+        logger.error(f"Failed to generate tokens for {request.email}: {str(e)}", exc_info=True)
+        return AuthResponse(
+            success=False,
+            error={"code": "INTERNAL_ERROR", "message": "Failed to generate tokens. Please try again."}
+        )
 
     # Return user + tokens
+    logger.info(f"Signup successful for email: {request.email}")
     return AuthResponse(
         success=True,
         data={
@@ -96,27 +116,45 @@ def login(http_request: Request, request: LoginRequest, db: Session = Depends(ge
     # Check rate limit
     client_ip = http_request.client.host
     if _rate_limiter.is_rate_limited(client_ip):
+        logger.warning(f"Rate limit exceeded for IP: {client_ip}")
         return AuthResponse(
             success=False,
             error={"code": "RATE_LIMITED", "message": "Too many failed attempts. Please try again later."}
         )
 
     # Verify credentials
-    user = verify_credentials(request.email, request.password, db)
+    try:
+        logger.info(f"Login request for email: {request.email}")
+        user = verify_credentials(request.email, request.password, db)
 
-    if not user:
+        if not user:
+            logger.warning(f"Failed login attempt for email: {request.email}")
+            return AuthResponse(
+                success=False,
+                error={"code": "INVALID_CREDENTIALS", "message": "Invalid email or password"}
+            )
+    except Exception as e:
+        logger.error(f"Error during login for {request.email}: {str(e)}", exc_info=True)
         return AuthResponse(
             success=False,
-            error={"code": "INVALID_CREDENTIALS", "message": "Invalid email or password"}
+            error={"code": "INTERNAL_ERROR", "message": "An error occurred. Please try again."}
         )
 
     # Reset rate limit on successful login
     _rate_limiter.reset_attempts(client_ip)
 
     # Generate tokens
-    access_token = create_access_token(user.id, user.email)
-    refresh_token = create_refresh_token(user.id)
+    try:
+        access_token = create_access_token(user.id, user.email)
+        refresh_token = create_refresh_token(user.id)
+    except Exception as e:
+        logger.error(f"Failed to generate tokens for {request.email}: {str(e)}", exc_info=True)
+        return AuthResponse(
+            success=False,
+            error={"code": "INTERNAL_ERROR", "message": "Failed to generate tokens. Please try again."}
+        )
 
+    logger.info(f"Login successful for email: {request.email}")
     return {
         "success": True,
         "data": {

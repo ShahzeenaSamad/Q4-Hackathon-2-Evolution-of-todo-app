@@ -263,46 +263,74 @@ export async function apiRequest(
  * Login with email and password
  */
 export async function login(credentials: LoginRequest): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(credentials),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-  if (!response.ok) {
-    const error = await response.json();
-    const errorMessage = error.detail || error.error?.message || 'Login failed';
-    throw new Error(errorMessage);
+  try {
+    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(credentials),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const error = await response.json();
+      const errorMessage = error.detail || error.error?.message || 'Login failed';
+      throw new Error(errorMessage);
+    }
+
+    const data: AuthResponse = await response.json();
+    setAuthTokens(data);
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout. Please try again.');
+    }
+    throw error;
   }
-
-  const data: AuthResponse = await response.json();
-  setAuthTokens(data);
-  return data;
 }
 
 /**
  * Sign up new user
  */
 export async function signup(userData: SignupRequest): Promise<AuthResponse> {
-  const response = await fetch(`${API_URL}/api/v1/auth/signup`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(userData),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-  if (!response.ok) {
-    const error = await response.json();
-    const errorMessage = error.detail || error.error?.message || 'Signup failed';
-    throw new Error(errorMessage);
+  try {
+    const response = await fetch(`${API_URL}/api/v1/auth/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const error = await response.json();
+      const errorMessage = error.detail || error.error?.message || 'Signup failed';
+      throw new Error(errorMessage);
+    }
+
+    const data: AuthResponse = await response.json();
+    setAuthTokens(data);
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Request timeout. Please try again.');
+    }
+    throw error;
   }
-
-  const data: AuthResponse = await response.json();
-  setAuthTokens(data);
-  return data;
 }
 
 /**

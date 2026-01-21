@@ -32,9 +32,13 @@ engine = create_engine(
     DATABASE_URL,
     echo=False,  # Disable SQL logging in production
     pool_pre_ping=True,  # Verify connections before using
-    pool_size=5,  # Smaller pool for Hugging Face
-    max_overflow=10,  # Additional connections when pool is full
+    pool_size=20,  # Increased for better concurrency
+    max_overflow=30,  # Additional connections when pool is full
     pool_recycle=3600,  # Recycle connections after 1 hour
+    connect_args={
+        "connect_timeout": 10,
+        "options": "-c timezone=utc"
+    }
 )
 
 # Create async engine
@@ -42,8 +46,8 @@ async_engine = create_async_engine(
     ASYNC_DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10,
+    pool_size=20,
+    max_overflow=30,
     pool_recycle=3600,
 )
 
