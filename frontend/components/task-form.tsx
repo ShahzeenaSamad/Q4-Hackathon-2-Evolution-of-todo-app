@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * TaskForm with Custom Color Palette
- * #092635, #1B4242, #5C8374, #9EC8B9
+ * TaskForm with Neon Cyan Theme
+ * Black background with neon cyan
  */
 
 import { useState, useEffect } from 'react';
@@ -89,12 +89,12 @@ export default function TaskForm({ onSuccess, editTask, onCancelEdit }: TaskForm
   return (
     <div className="group relative">
       {/* Glow effect */}
-      <div className="absolute inset-0 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300" style={{ background: 'linear-gradient(to right, #5C8374, #9EC8B9)' }}></div>
+      <div className="absolute inset-0 rounded-3xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300 neon-glow"></div>
 
       <div className="relative backdrop-blur-xl bg-white/5 rounded-3xl border border-white/10 overflow-hidden">
         {/* Header with gradient */}
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, #5C8374, #9EC8B9)' }}></div>
+          <div className="absolute inset-0" style={{ background: '#00FFFF' }}></div>
           <div className="relative px-6 py-5">
             <div className="flex items-center space-x-3">
               <div className="relative">
@@ -105,7 +105,7 @@ export default function TaskForm({ onSuccess, editTask, onCancelEdit }: TaskForm
                   </svg>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 className="text-xl font-bold text-black">
                 {isEditing ? '✏️ Edit Task' : '✨ Create New Task'}
               </h3>
             </div>
@@ -244,20 +244,20 @@ export default function TaskForm({ onSuccess, editTask, onCancelEdit }: TaskForm
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="group relative px-8 py-3 rounded-2xl text-sm font-semibold text-white overflow-hidden transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ background: 'linear-gradient(to right, #5C8374, #9EC8B9)' }}
+                className="group relative px-8 py-3 rounded-2xl text-sm font-semibold text-black overflow-hidden transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: '#00FFFF' }}
               >
                 <span className="relative flex items-center">
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
                       Saving...
                     </>
                   ) : (
-                    <span className="flex items-center">
+                    <>
                       {isEditing ? (
                         <>
                           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -273,7 +273,7 @@ export default function TaskForm({ onSuccess, editTask, onCancelEdit }: TaskForm
                           Create Task
                         </>
                       )}
-                    </span>
+                    </>
                   )}
                 </span>
               </button>

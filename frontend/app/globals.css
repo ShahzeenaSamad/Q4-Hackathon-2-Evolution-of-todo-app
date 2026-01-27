@@ -3,21 +3,109 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #000000;
+  --foreground: #00FFFF;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Neon Theme Styles */
+body {
+  background: #000000;
+}
+
+/* Neon color utilities */
+.neon-text {
+  text-shadow:
+    0 0 5px #00FFFF,
+    0 0 10px #00FFFF,
+    0 0 20px #00FFFF,
+    0 0 40px #00FFFF;
+}
+
+.neon-text-pink {
+  text-shadow:
+    0 0 5px #FF00FF,
+    0 0 10px #FF00FF,
+    0 0 20px #FF00FF,
+    0 0 40px #FF00FF;
+}
+
+.neon-text-purple {
+  text-shadow:
+    0 0 5px #BF00FF,
+    0 0 10px #BF00FF,
+    0 0 20px #BF00FF,
+    0 0 40px #BF00FF;
+}
+
+.neon-text-green {
+  text-shadow:
+    0 0 5px #00FF00,
+    0 0 10px #00FF00,
+    0 0 20px #00FF00,
+    0 0 40px #00FF00;
+}
+
+.neon-text-yellow {
+  text-shadow:
+    0 0 5px #FFFF00,
+    0 0 10px #FFFF00,
+    0 0 20px #FFFF00,
+    0 0 40px #FFFF00;
+}
+
+.neon-border {
+  border-color: #00FFFF;
+  box-shadow:
+    0 0 5px #00FFFF,
+    0 0 10px #00FFFF,
+    0 0 20px #00FFFF,
+    inset 0 0 10px rgba(0, 255, 255, 0.1);
+}
+
+.neon-border-pink {
+  border-color: #FF00FF;
+  box-shadow:
+    0 0 5px #FF00FF,
+    0 0 10px #FF00FF,
+    0 0 20px #FF00FF,
+    inset 0 0 10px rgba(255, 0, 255, 0.1);
+}
+
+.neon-glow {
+  box-shadow:
+    0 0 5px #00FFFF,
+    0 0 10px #00FFFF,
+    0 0 20px #00FFFF,
+    0 0 40px #00FFFF;
+}
+
+.neon-glow-pink {
+  box-shadow:
+    0 0 5px #FF00FF,
+    0 0 10px #FF00FF,
+    0 0 20px #FF00FF,
+    0 0 40px #FF00FF;
+}
+
+.neon-glow-purple {
+  box-shadow:
+    0 0 5px #BF00FF,
+    0 0 10px #BF00FF,
+    0 0 20px #BF00FF,
+    0 0 40px #BF00FF;
+}
+
+.neon-gradient {
+  background: linear-gradient(135deg, #00FFFF, #FF00FF, #BF00FF, #00FF00, #FFFF00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 @layer utilities {

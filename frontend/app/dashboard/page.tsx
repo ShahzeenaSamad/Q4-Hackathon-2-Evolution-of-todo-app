@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Dashboard with Custom Color Palette
- * #092635, #1B4242, #5C8374, #9EC8B9
+ * Dashboard with Neon Theme
+ * Black background with neon cyan, pink, purple, green, yellow
  */
 
 import { useState, useEffect } from 'react';
@@ -92,33 +92,45 @@ export default function DashboardPage() {
 
   return (
     <AuthGuard>
-      <div className="min-h-screen" style={{ background: 'linear-gradient(to bottom right, #092635, #1B4242)' }}>
+      <div className="min-h-screen" style={{ background: '#000000' }}>
         {/* Header */}
         <header className="sticky top-0 z-50 backdrop-blur-xl border-b border-white/10">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center space-x-4">
-                <div className="rounded-xl p-2.5 transition-all duration-300 hover:scale-110 hover:shadow-lg animate-bounce-slow" style={{ background: 'linear-gradient(to bottom right, #5C8374, #9EC8B9)' }}>
+                <div className="rounded-xl p-2.5 transition-all duration-300 hover:scale-110 hover:shadow-lg animate-bounce-slow neon-glow">
                   <svg className="w-7 h-7 text-white animate-spin-slow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-white transition-all duration-300 hover:scale-105 animate-gradient-x" style={{ backgroundImage: 'linear-gradient(to right, #9EC8B9, #5C8374, #9EC8B9)', backgroundSize: '200% 100%', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TaskFlow</h1>
+                  <h1 className="text-2xl font-bold neon-gradient transition-all duration-300 hover:scale-105">TaskFlow</h1>
                   <p className="text-sm text-white/60">
                     Hey, {user?.name || user?.email?.split('@')[0]}!
                   </p>
                 </div>
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-white/80 hover:text-white border border-white/20 hover:border-white/30 rounded-lg transition-all duration-200 hover:bg-white/10 flex items-center space-x-2"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                <span>Logout</span>
-              </button>
+              <div className="flex items-center space-x-3">
+                <button
+                  onClick={() => router.push('/chat')}
+                  className="px-4 py-2 text-black border border-white/20 hover:border-cyan-400 rounded-lg transition-all duration-200 hover:bg-white/10 flex items-center space-x-2"
+                  style={{ background: 'rgba(0,255,255,0.8)' }}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                  </svg>
+                  <span>AI Chat</span>
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-white/80 hover:text-white border border-white/20 hover:border-white/30 rounded-lg transition-all duration-200 hover:bg-white/10 flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Logout</span>
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -134,8 +146,8 @@ export default function DashboardPage() {
                   <p className="text-sm font-medium text-white/60 mb-1">Total Tasks</p>
                   <p className="text-4xl font-bold text-white">{totalTasks}</p>
                 </div>
-                <div className="p-4 rounded-2xl" style={{ background: 'linear-gradient(to bottom right, rgba(165,56,96,0.3), rgba(158,200,185,0.3))' }}>
-                  <svg className="w-10 h-10" style={{ color: '#9EC8B9' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="p-4 rounded-2xl" style={{ background: 'rgba(0,255,255,0.2)' }}>
+                  <svg className="w-10 h-10" style={{ color: '#00FFFF' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                   </svg>
                 </div>
@@ -185,7 +197,7 @@ export default function DashboardPage() {
                   className="h-3 rounded-full transition-all duration-700 ease-out"
                   style={{
                     width: `${completionRate}%`,
-                    background: 'linear-gradient(to right, #5C8374, #9EC8B9)'
+                    background: '#00FFFF'
                   }}
                 />
               </div>
@@ -218,7 +230,7 @@ export default function DashboardPage() {
                   </div>
                   {loading && (
                     <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 border-3 border-white/20 rounded-full animate-spin" style={{ borderTopColor: '#9EC8B9' }}></div>
+                      <div className="w-6 h-6 border-3 border-white/20 rounded-full animate-spin" style={{ borderTopColor: '#00FFFF' }}></div>
                       <span className="text-sm text-white/60">Loading...</span>
                     </div>
                   )}
@@ -324,7 +336,7 @@ export default function DashboardPage() {
                 )}
 
                 {editTask && (
-                  <div className="mb-6 px-4 py-3 rounded-xl flex items-center" style={{ background: 'rgba(158,200,185,0.15)', border: '1px solid rgba(158,200,185,0.3)', color: '#9EC8B9' }}>
+                  <div className="mb-6 px-4 py-3 rounded-xl flex items-center" style={{ background: 'rgba(0,255,255,0.15)', border: '1px solid rgba(0,255,255,0.3)', color: '#00FFFF' }}>
                     <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
                     </svg>
@@ -341,7 +353,7 @@ export default function DashboardPage() {
                 {!loading && filteredTasks.length === 0 && (
                   <div className="text-center py-16">
                     <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 rounded-full mb-4">
-                      <svg className="w-10 h-10" style={{ color: '#9EC8B9' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-10 h-10" style={{ color: '#00FFFF' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
                     </div>

@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * Signup Page with Custom Color Palette
- * #092635, #1B4242, #5C8374, #9EC8B9
+ * Signup Page with Neon Theme
+ * Black background with neon cyan, pink, purple, green, yellow
  */
 
 import { useState, useEffect } from 'react';
@@ -30,6 +30,12 @@ export default function SignupPage() {
   } = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     mode: 'onBlur',
+    defaultValues: {
+      email: '',
+      password: '',
+      confirmPassword: '',
+      name: undefined,
+    },
   });
 
   const password = watch('password');
@@ -85,7 +91,7 @@ export default function SignupPage() {
           <a
             href="/login"
             className="font-semibold hover:opacity-80"
-            style={{ color: '#9EC8B9' }}
+            className="font-semibold hover:opacity-80 neon-text"
           >
             Log in →
           </a>
@@ -192,8 +198,8 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 px-4 text-white font-semibold rounded-xl transition-all duration-200 hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{ background: 'linear-gradient(to right, #5C8374, #9EC8B9)' }}
+          className="w-full py-3 px-4 text-black font-semibold rounded-xl transition-all duration-200 hover:opacity-90 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ background: '#00FFFF' }}
         >
           {isSubmitting ? (
             <span className="flex items-center justify-center">

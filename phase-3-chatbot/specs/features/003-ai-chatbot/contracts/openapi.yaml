@@ -1,0 +1,304 @@
+openapi: 3.0.0
+info:
+  title: AI-Powered Todo Chatbot API
+  version: 1.0.0
+  description: |
+    Stateless chat API for AI-powered todo task management.
+
+    This API enables users to manage their todo tasks through natural language
+    conversation. All processing is stateless - conversation history is loaded
+    from the database on every request.
+
+    **Key Features:**
+    - Single POST endpoint for all chat interactions
+    - Automatic conversation management
+    - Database-backed conversation persistence
+    - MCP tool-based task operations
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local development server
+
+tags:
+  - name: Chat
+    description: Chat endpoint for natural language task management
+
+paths:
+  /chat/{user_id}:
+    post:
+      tags: [Chat]
+      summary: Send chat message
+      description: |
+        Process a natural language message through the AI agent and return a response.
+
+        **Request Lifecycle:**
+        1. Validate user authentication (JWT from Phase 2)
+        2. Get or create conversation
+        3. Load full conversation history from database
+        4. Pass to AI agent with MCP tools
+        5. Store user message and assistant response
+        6. Return formatted response
+
+      operationId: sendMessage
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique user identifier (from JWT token)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            examples:
+              create_task:
+                summary: Create a new task
+                value:
+                  message: "Add buy milk to my tasks"
+                  conversation_id: null
+              query_tasks:
+                summary: Query all tasks
+                value:
+                  message: "What are my tasks?"
+                  conversation_id: "550e8400-e29b-41d4-a716-446655440001"
+              complete_task:
+                summary: Complete a task by name
+                value:
+                  message: "I finished buying groceries"
+                  conversation_id: "550e8400-e29b-41d4-a716-446655440001"
+
+      responses:
+        '200':
+          description: Successful message processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+              examples:
+              - task_created:
+                  summary: Task created successfully
+                  value:
+                    success: true
+                    data:
+                      response: "I've added 'Buy milk' to your tasks (ID: 123)"
+                      conversation_id: "550e8400-e29b-41d4-a716-446655440001"
+                      tool_calls:
+                        - tool: "add_task"
+                          success: true
+                          result:
+                            task_id: "550e8400-e29b-41d4-a716-446655440002"
+                            title: "Buy milk"
+                    error: null
+
+              - tasks_listed:
+                  summary: Tasks retrieved successfully
+                  value:
+                    success: true
+                    data:
+                      response: "You have 3 tasks:\n1. Buy milk\n2. Walk dog\n3. Email John"
+                      conversation_id: "550e8400-e29b-41d4-a716-446655440001"
+                      tool_calls:
+                        - tool: "list_tasks"
+                          success: true
+                          result:
+                            total: 3
+                            pending: 2
+                            completed: 1
+                    error: null
+
+              - clarification_needed:
+                  summary: Ambiguous intent detected
+                  value:
+                    success: true
+                    data:
+                      response: "Which task would you like me to delete? I found: 'Write monthly report' and 'Review annual report'"
+                      conversation_id: "550e8400-e29b-41d4-a716-446655440001"
+                      tool_calls: []
+                    error: null
+
+        '400':
+          description: Bad request (invalid input)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "INVALID_REQUEST"
+                  message: "Message cannot be empty"
+
+        '401':
+          description: Unauthorized (invalid or missing authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "UNAUTHORIZED"
+                  message: "Authentication required"
+
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "INTERNAL_ERROR"
+                  message: "I'm having trouble right now. Please try again."
+
+        '503':
+          description: Service unavailable (rate limited or overload)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                data: null
+                error:
+                  code: "SERVICE_UNAVAILABLE"
+                  message: "Too many requests. Please try again later."
+
+components:
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: User's natural language message
+          example: "Add buy milk to my tasks"
+        conversation_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: |
+            Optional conversation ID to resume existing conversation.
+            If null or not provided, creates a new conversation.
+          example: "550e8400-e29b-41d4-a716-446655440001"
+
+    ChatResponse:
+      type: object
+      required:
+        - success
+        - data
+        - error
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was processed successfully
+        data:
+          oneOf:
+            - $ref: '#/components/schemas/ChatSuccessData'
+            - type: object
+              nullable: true
+          description: Response data on success, or null on error
+        error:
+          oneOf:
+            - $ref: '#/components/schemas/ErrorDetail'
+            - type: object
+              nullable: true
+          description: Error details on failure, or null on success
+
+    ChatSuccessData:
+      type: object
+      required:
+        - response
+        - conversation_id
+      properties:
+        response:
+          type: string
+          maxLength: 5000
+          description: Assistant's natural language response to user
+          example: "I've added 'Buy milk' to your tasks (ID: 123)"
+        conversation_id:
+          type: string
+          format: uuid
+          description: Conversation ID (use for subsequent requests)
+          example: "550e8400-e29b-41d4-a716-446655440001"
+        tool_calls:
+          type: array
+          items:
+            type: object
+            properties:
+              tool:
+                type: string
+                enum: [add_task, list_tasks, complete_task, update_task, delete_task]
+              success:
+                type: boolean
+              result:
+                type: object
+                additionalProperties: true
+          description: |
+            List of MCP tool calls executed by the agent.
+            Empty if no tools were called (e.g., clarification question).
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - data
+        - error
+      properties:
+        success:
+          type: boolean
+          example: false
+        data:
+          type: object
+          nullable: true
+          example: null
+        error:
+          $ref: '#/components/schemas/ErrorDetail'
+
+    ErrorDetail:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          enum:
+            - INVALID_REQUEST
+            - UNAUTHORIZED
+            - NOT_FOUND
+            - INTERNAL_ERROR
+            - SERVICE_UNAVAILABLE
+            - RATE_LIMITED
+          description: Machine-readable error code
+        message:
+          type: string
+          maxLength: 500
+          description: Human-readable error message
+          example: "I'm having trouble right now. Please try again."
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT authentication token from Phase 2.
+        Include in Authorization header: `Bearer <token>`
+
+security:
+  - BearerAuth: []
