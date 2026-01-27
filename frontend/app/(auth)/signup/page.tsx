@@ -90,7 +90,6 @@ export default function SignupPage() {
           Already have an account?{' '}
           <a
             href="/login"
-            className="font-semibold hover:opacity-80"
             className="font-semibold hover:opacity-80 neon-text"
           >
             Log in →

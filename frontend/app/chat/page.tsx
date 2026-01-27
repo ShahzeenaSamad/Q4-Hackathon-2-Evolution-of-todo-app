@@ -272,7 +272,7 @@ export default function ChatPage() {
                 </button>
               </div>
               <p className="text-xs text-white/40 mt-2 text-center">
-                Press Enter to send • Try natural language like "Add task for meeting tomorrow"
+                Press Enter to send • Try natural language like &quot;Add task for meeting tomorrow&quot;
               </p>
             </div>
           </div>

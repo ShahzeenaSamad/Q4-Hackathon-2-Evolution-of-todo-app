@@ -59,7 +59,6 @@ export default function LoginPage() {
           Don&apos;t have an account?{' '}
           <a
             href="/signup"
-            className="font-semibold hover:opacity-80"
             className="font-semibold hover:opacity-80 neon-text"
           >
             Sign up →
@@ -148,7 +147,6 @@ export default function LoginPage() {
           <div className="text-sm">
             <a
               href="/forgot-password"
-              className="font-semibold hover:opacity-80"
               className="font-semibold hover:opacity-80 neon-text"
             >
               Forgot password?
