@@ -1,0 +1,15 @@
+{{/*
+ConfigMap for backend environment variables
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-backend-config
+  labels:
+    {{- include "todo-chatbot.backend.labels" . | nindent 4 }}
+data:
+  DATABASE_URL: {{ .Values.backend.env.DATABASE_URL | quote }}
+  LOG_LEVEL: {{ .Values.backend.env.LOG_LEVEL | quote }}
+  API_PORT: {{ .Values.backend.env.API_PORT | quote }}
+  CORS_ORIGINS: {{ .Values.backend.env.CORS_ORIGINS | quote }}
+  AI_AGENT_TYPE: {{ .Values.backend.env.AI_AGENT_TYPE | quote }}

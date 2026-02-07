@@ -1,0 +1,36 @@
+{{/*
+HorizontalPodAutoscaler for Backend
+Conditionally enabled via values.hpa.enabled
+*/}}
+{{- if .Values.backend.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "todo-chatbot.fullname" . }}-backend-hpa
+  labels:
+    {{- include "todo-chatbot.backend.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "todo-chatbot.fullname" . }}-backend
+  minReplicas: {{ .Values.backend.hpa.minReplicas }}
+  maxReplicas: {{ .Values.backend.hpa.maxReplicas }}
+  metrics:
+  {{- if .Values.backend.hpa.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.backend.hpa.targetCPUUtilizationPercentage }}
+  {{- end }}
+  {{- if .Values.backend.hpa.targetMemoryUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.backend.hpa.targetMemoryUtilizationPercentage }}
+  {{- end }}
+{{- end }}

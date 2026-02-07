@@ -1,0 +1,177 @@
+# Default values for todo-chatbot
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Namespace configuration
+namespace: todo-chatbot-dev
+
+# Replica count (default: 2 for high availability)
+replicaCount: 2
+
+imagePullPolicy: IfNotPresent
+
+# Frontend configuration
+frontend:
+  enabled: true
+  image:
+    repository: todo-chatbot-frontend
+    tag: v1.0.0
+    pullPolicy: IfNotPresent
+
+  service:
+    type: LoadBalancer
+    port: 3000
+    annotations: {}
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Environment variables (from ConfigMap)
+  env:
+    NEXT_PUBLIC_API_URL: http://backend-service:8000
+    NEXT_PUBLIC_APP_NAME: Todo AI Chatbot
+    NEXT_PUBLIC_ENVIRONMENT: dev
+
+  # Health check probes
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /api/ready
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  startupProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  # Horizontal Pod Autoscaler
+  hpa:
+    enabled: false  # Disabled by default for local dev
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+# Backend configuration
+backend:
+  enabled: true
+  image:
+    repository: todo-chatbot-backend
+    tag: v1.0.0
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 8000
+    annotations: {}
+
+  replicas: 2
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  # Environment variables (from ConfigMap)
+  env:
+    DATABASE_URL: postgresql://neondb_owner:npg_fXJmwMN2pGo6@ep-withered-wind-ahpvg0sd-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+    LOG_LEVEL: info
+    API_PORT: "8000"
+    CORS_ORIGINS: "http://localhost:3000,http://frontend-service:3000"
+
+  # Secrets (from Secret)
+  secrets:
+    OPENAI_API_KEY: sk-your-openai-api-key-here
+
+  # Health check probes
+  livenessProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 8000
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+  startupProbe:
+    httpGet:
+      path: /health
+      port: 8000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  # Horizontal Pod Autoscaler
+  hpa:
+    enabled: false  # Disabled by default for local dev
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}
+
+# Service account
+serviceAccount:
+  create: false
+  name: ""
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+    - ALL

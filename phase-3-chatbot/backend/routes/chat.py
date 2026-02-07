@@ -11,7 +11,7 @@ Uses skills:
 """
 
 import logging
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from sqlmodel import Session
@@ -19,14 +19,28 @@ from sqlmodel import Session
 # Database Session Management Skill
 from db import get_db
 
+# JWT Authentication
+from auth.middleware import verify_jwt
+
 # Conversation Management Skill
 from services import ConversationService, HistoryBuilder
 
 # Agents (use MCP Tool Invocation skill internally)
 from agents import get_agent, AI_AGENT_TYPE, MockAgentRunner
 
-# Error Handling Skill
-from mcp_tools.exceptions import ValidationError, NotFoundError, OwnershipError
+# Error Handling Skill (handle missing mcp_tools gracefully)
+try:
+    from mcp_tools.exceptions import ValidationError, NotFoundError, OwnershipError
+    MCP_TOOLS_AVAILABLE = True
+except ImportError:
+    MCP_TOOLS_AVAILABLE = False
+    # Define stub exceptions for compatibility
+    class ValidationError(Exception):
+        pass
+    class NotFoundError(Exception):
+        pass
+    class OwnershipError(Exception):
+        pass
 
 
 router = APIRouter(prefix="/api/v1", tags=["Chat"])
@@ -67,13 +81,23 @@ class ChatResponse(BaseModel):
         }
 
 
-@router.post("/chat/{user_id}", response_model=ChatResponse)
-async def send_message(user_id: str, request: ChatRequest, db: Session = Depends(get_db)):
+@router.post("/chat", response_model=ChatResponse)
+async def send_message(
+    request: ChatRequest,
+    http_request: Request,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(verify_jwt)
+):
     """
     Process a natural language message through the AI agent.
 
+    ## Authentication (JWT):
+    - Requires valid Bearer token in Authorization header
+    - User ID extracted from JWT token (not from request body)
+    - Returns 401 Unauthorized if token missing or invalid
+
     ## Pipeline (Conversation Management Skill):
-    1. Validate user authentication (user_id from path)
+    1. Verify JWT token and extract user_id
     2. Get or create conversation
     3. Load conversation history from database
     4. Pass to AI agent with MCP tools
@@ -91,13 +115,14 @@ async def send_message(user_id: str, request: ChatRequest, db: Session = Depends
     - User sees confirmations for all actions
 
     ## Error Handling:
+    - 401 Unauthorized for missing/invalid tokens
     - Validation errors return user-friendly messages
     - Database errors handled gracefully
     - Agent errors caught and formatted
     """
 
     try:
-        logger.info(f"Chat request from user {user_id}: {request.message[:50]}...")
+        logger.info(f"Chat request from authenticated user {user_id}: {request.message[:50]}...")
 
         # Initialize services (Conversation Management Skill)
         conversation_svc = ConversationService()

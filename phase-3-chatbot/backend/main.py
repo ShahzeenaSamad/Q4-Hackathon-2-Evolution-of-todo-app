@@ -26,7 +26,12 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for startup and shutdown events"""
+    import time
     logger.info("Starting AI-Powered Todo Chatbot API...")
+
+    # Record startup time for health check uptime calculation
+    app.state.start_time = time.time()
+
     yield
     logger.info("Shutting down AI-Powered Todo Chatbot API...")
 
@@ -40,10 +45,12 @@ app = FastAPI(
 )
 
 # Configure CORS for frontend communication
-cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+# Temporary: Allow all origins for production deployment
+# TODO: Lock this down to specific origins in production
+cors_origins = os.getenv("CORS_ORIGINS", "*").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=["*"],  # Allow all origins temporarily
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -55,12 +62,51 @@ logger.info(f"CORS enabled for origins: {cors_origins}")
 @app.get("/health")
 def health_check():
     """
-    Health check endpoint for deployment monitoring.
+    Health check endpoint for liveness probe.
 
-    Returns service status and can be used by load balancers
-    to check service availability.
+    Returns service status and uptime.
+    Used by Kubernetes to check if container needs restart.
     """
-    return {"status": "healthy", "service": "ai-chatbot", "version": "1.0.0"}
+    import time
+    start_time = getattr(app.state, "start_time", time.time())
+    return {
+        "status": "healthy",
+        "service": "ai-chatbot",
+        "version": "1.0.0",
+        "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+        "uptime": time.time() - start_time
+    }
+
+
+@app.get("/ready")
+def readiness_check():
+    """
+    Readiness check endpoint for deployment monitoring.
+
+    Returns service status and database connectivity.
+    Used by Kubernetes to check if container is ready to serve traffic.
+    """
+    from datetime import datetime
+    import time
+
+    # Check database connectivity
+    db_status = "connected"
+    try:
+        # Try to get database session
+        from db import get_db
+        db = next(get_db())
+        db.close()
+    except Exception as e:
+        db_status = "disconnected"
+        logger.error(f"Database check failed: {e}")
+
+    return {
+        "status": "ready" if db_status == "connected" else "not_ready",
+        "timestamp": datetime.utcnow().isoformat(),
+        "dependencies": {
+            "database": db_status
+        }
+    }
 
 
 @app.get("/")
@@ -77,5 +123,13 @@ def root():
 # Import and include chat routes
 from routes import chat
 app.include_router(chat.router)
+
+# Import and include auth routes
+from routes import auth
+app.include_router(auth.router)
+
+# Import and include tasks routes
+from routes import tasks
+app.include_router(tasks.router)
 
 logger.info("FastAPI application initialized")

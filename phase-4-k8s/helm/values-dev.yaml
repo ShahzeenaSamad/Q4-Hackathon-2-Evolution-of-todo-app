@@ -1,0 +1,57 @@
+# Development environment overrides for todo-chatbot
+# This file is used for local development with Minikube
+
+# Override namespace for development
+namespace: todo-chatbot-dev
+
+# Reduce replicas for development
+replicaCount: 1
+
+frontend:
+  image:
+    tag: v1.0.2
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  env:
+    NEXT_PUBLIC_ENVIRONMENT: dev
+    NEXT_PUBLIC_API_URL: http://todo-chatbot-backend-service:8000
+
+  # HPA disabled for development
+  hpa:
+    enabled: false
+
+backend:
+  image:
+    tag: v1.0.7
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+  env:
+    DATABASE_URL: postgresql://neondb_owner:npg_fXJmwMN2pGo6@ep-withered-wind-ahpvg0sd-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
+    LOG_LEVEL: debug
+    AI_AGENT_TYPE: cohere
+    API_PORT: "8000"
+    CORS_ORIGINS: "http://localhost:3000,http://frontend-service:3000"
+
+  # Secrets (from environment or Kubernetes secret)
+  secrets:
+    COHERE_API_KEY: "your-cohere-api-key-here"
+
+  # HPA disabled for development
+  hpa:
+    enabled: false

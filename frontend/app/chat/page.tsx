@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/auth';
+import { apiRequest } from '@/lib/auth';
 import AuthGuard from '@/components/auth-guard';
 import { useRouter } from 'next/navigation';
 
@@ -65,8 +66,8 @@ export default function ChatPage() {
     setLoading(true);
 
     try {
-      const chatApiUrl = process.env.NEXT_PUBLIC_CHAT_API_URL || 'http://localhost:8001';
-      const response = await fetch(`${chatApiUrl}/api/v1/chat/${user?.id}`, {
+      // Use apiRequest for automatic JWT injection and 401 handling
+      const response = await apiRequest('/api/v1/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,6 +78,7 @@ export default function ChatPage() {
         }),
       });
 
+      // apiRequest handles 401 by auto-logout and redirect
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -101,6 +103,7 @@ export default function ChatPage() {
         throw new Error(data.error?.message || 'Failed to get response');
       }
     } catch (error) {
+      // 401 errors are handled by apiRequest (auto-logout)
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',

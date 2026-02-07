@@ -174,7 +174,7 @@ export async function refreshAccessToken(): Promise<AuthTokens> {
     throw new Error('No refresh token available');
   }
 
-  const response = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+  const response = await fetch(`${API_URL}/api/auth/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -267,7 +267,7 @@ export async function login(credentials: LoginRequest): Promise<AuthResponse> {
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
   try {
-    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
+    const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -304,7 +304,7 @@ export async function signup(userData: SignupRequest): Promise<AuthResponse> {
   const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
   try {
-    const response = await fetch(`${API_URL}/api/v1/auth/signup`, {
+    const response = await fetch(`${API_URL}/api/auth/signup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -339,7 +339,7 @@ export async function signup(userData: SignupRequest): Promise<AuthResponse> {
 export async function logout(): Promise<void> {
   try {
     // Call logout endpoint (optional, for server-side tracking)
-    await fetch(`${API_URL}/api/v1/auth/logout`, {
+    await fetch(`${API_URL}/api/auth/logout`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

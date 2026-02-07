@@ -28,7 +28,7 @@ class Task(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=datetime.now)
 
 
-class TaskCreate:
+class TaskCreate(SQLModel):
     """Schema for creating a new task"""
     title: str
     description: Optional[str] = None
@@ -37,7 +37,7 @@ class TaskCreate:
     category: Optional[str] = None
 
 
-class TaskUpdate:
+class TaskUpdate(SQLModel):
     """Schema for updating a task"""
     title: Optional[str] = None
     description: Optional[str] = None

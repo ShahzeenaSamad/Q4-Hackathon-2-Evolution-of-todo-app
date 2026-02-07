@@ -1,0 +1,48 @@
+# Production-like environment overrides for todo-chatbot
+# This file is used for production-like local deployment with Minikube
+
+# Override namespace for production-like
+namespace: todo-chatbot-prod
+
+# Increase replicas for production-like
+replicaCount: 3
+
+frontend:
+  replicas: 3
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  env:
+    NEXT_PUBLIC_ENVIRONMENT: production
+
+  # Enable HPA for production-like
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+
+backend:
+  replicas: 3
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  env:
+    LOG_LEVEL: info
+
+  # Enable HPA for production-like
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
